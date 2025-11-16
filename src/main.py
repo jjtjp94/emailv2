@@ -15,6 +15,8 @@ from src.utils.auth import get_auth_manager
 from src.services.graph_service import get_graph_service
 from src.services.db_service import get_db_service
 from src.services.cache_service import get_cache_service
+from src.services.style_learning import get_style_learning_service
+from src.services.draft_generator import get_draft_generator
 from src.models.email import Email
 
 
@@ -165,6 +167,106 @@ def fetch_and_store_emails(logger):
     return True
 
 
+def learn_writing_style(logger):
+    """Analyze sent emails to learn user's writing style."""
+    db_service = get_db_service()
+    stats = db_service.get_email_stats()
+
+    if stats['total_sent'] < 5:
+        print("\n[SKIP] Not enough sent emails for style learning (need at least 5)")
+        return True
+
+    print("\n[5/6] Learning your writing style from sent emails...")
+    logger.info("Starting style learning")
+
+    try:
+        style_service = get_style_learning_service()
+
+        # Analyze sent emails
+        print("  - Analyzing sent emails...")
+        style_profile = style_service.analyze_sent_emails(max_emails=100)
+
+        if style_profile:
+            print(f"    ✓ Analyzed {style_profile.total_emails_analyzed} emails")
+            print(f"    - Average email length: {style_profile.avg_email_length} words")
+            print(f"    - Formality level: {style_profile.get_formality_description() if hasattr(style_profile, 'get_formality_description') else 'N/A'}")
+            if style_profile.common_greetings:
+                print(f"    - Common greetings: {', '.join(style_profile.common_greetings[:3])}")
+            if style_profile.style_summary:
+                print(f"    - Style: {style_profile.style_summary[:100]}...")
+        else:
+            print("    ! Style analysis incomplete")
+
+        # Build sender profiles
+        print("  - Building sender-specific profiles...")
+        style_service.build_sender_profiles(min_emails_per_sender=2)
+
+        sender_stats = db_service.get_sender_stats()
+        print(f"    ✓ Created {sender_stats['total_senders']} sender profiles")
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Style learning failed: {e}")
+        print(f"    ✗ Style learning failed: {e}")
+        return False
+
+
+def generate_sample_draft(logger):
+    """Generate a sample draft for the first unread email."""
+    print("\n[6/6] Generating sample draft response...")
+    logger.info("Generating sample draft")
+
+    db_service = get_db_service()
+    draft_generator = get_draft_generator()
+
+    try:
+        # Get first unread email
+        unread_emails = db_service.get_emails_by_type("inbox", limit=10, unread_only=True)
+
+        if not unread_emails:
+            # Try any inbox email
+            unread_emails = db_service.get_emails_by_type("inbox", limit=5)
+
+        if not unread_emails:
+            print("    ! No emails found to generate draft for")
+            return True
+
+        email = unread_emails[0]
+
+        print(f"  - Generating draft for: \"{email.subject[:50]}...\"")
+        print(f"    From: {email.sender_email}")
+
+        # Generate draft
+        draft = draft_generator.generate_draft_for_email(
+            email=email,
+            target_length="medium"
+        )
+
+        if draft:
+            print(f"    ✓ Draft generated successfully!")
+            print(f"    - Tokens used: {draft.tokens_used}")
+            print(f"    - Draft version: {draft.draft_version}")
+            print("\n" + "─" * 80)
+            print("DRAFT PREVIEW:")
+            print("─" * 80)
+            # Show first 300 chars
+            preview = draft.body_content[:300]
+            if len(draft.body_content) > 300:
+                preview += "..."
+            print(preview)
+            print("─" * 80)
+        else:
+            print("    ✗ Failed to generate draft")
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Draft generation failed: {e}")
+        print(f"    ✗ Draft generation failed: {e}")
+        return False
+
+
 def display_summary(logger):
     """Display application status summary."""
     settings = get_settings()
@@ -173,8 +275,11 @@ def display_summary(logger):
     stats = db_service.get_email_stats()
     sender_stats = db_service.get_sender_stats()
 
+    # Get style profile if available
+    style_profile = db_service.get_active_style_profile()
+
     print("\n" + "=" * 80)
-    print("INITIALIZATION COMPLETE")
+    print("PHASE 2 COMPLETE - AI INTEGRATION & STYLE LEARNING")
     print("=" * 80)
 
     print("\n📊 Current Status:")
@@ -184,10 +289,21 @@ def display_summary(logger):
     print(f"  - Unread emails: {stats['total_unread']}")
     print(f"  - Sender profiles: {sender_stats['total_senders']}")
 
+    if style_profile and style_profile.total_emails_analyzed > 0:
+        print(f"\n📝 Your Writing Style:")
+        print(f"  - Emails analyzed: {style_profile.total_emails_analyzed}")
+        print(f"  - Average length: {style_profile.avg_email_length} words")
+        print(f"  - Formality score: {style_profile.avg_formality_score:.2f}/1.0")
+        if style_profile.tone_descriptors:
+            print(f"  - Tone: {', '.join(style_profile.tone_descriptors)}")
+        if style_profile.style_summary:
+            print(f"  - Summary: {style_profile.style_summary[:80]}...")
+
     print("\n⚙️  Configuration:")
     print(f"  - Database: {settings.DATABASE_PATH}")
     print(f"  - Cache: {settings.CACHE_DIR}")
     print(f"  - Logs: {settings.LOG_FILE}")
+    print(f"  - AI Model: {settings.ANTHROPIC_MODEL}")
 
     print("\n✅ Phase 1 Complete:")
     print("  [✓] Microsoft Graph authentication")
@@ -195,19 +311,26 @@ def display_summary(logger):
     print("  [✓] Email fetching and storage")
     print("  [✓] Cache service")
 
-    print("\n🔜 Next Steps:")
-    print("  • Phase 2: AI Integration & Style Learning")
-    print("    - Implement Claude API service")
-    print("    - Analyze sent emails to learn your writing style")
-    print("    - Build sender-specific profiles")
-    print("    - Generate first draft response")
-    print("\n  • Phase 3: Desktop UI Development")
-    print("    - Build PyQt6 main window")
-    print("    - Add system tray integration")
-    print("    - Implement global hotkeys")
+    print("\n✅ Phase 2 Complete:")
+    print("  [✓] Claude AI integration")
+    print("  [✓] Writing style analysis")
+    print("  [✓] Sender profile building")
+    print("  [✓] Draft generation engine")
+    print("  [✓] Refinement system")
 
-    print("\n💡 Try running the app again to fetch more emails!")
-    print("   Or continue to Phase 2 implementation.")
+    print("\n🔜 Next Steps:")
+    print("  • Phase 3: Desktop UI Development")
+    print("    - Build PyQt6 main window with email list")
+    print("    - Add draft editor with refinement buttons")
+    print("    - Implement system tray integration")
+    print("    - Add global hotkeys for quick access")
+    print("    - Create settings panel")
+
+    print("\n💡 What You Can Do Now:")
+    print("  • View your learned style: Check the database")
+    print("  • Generate more drafts: Run the app again")
+    print("  • Test refinements: Use the AI service")
+    print("  • Ready for Phase 3: Desktop UI implementation")
     print("=" * 80 + "\n")
 
 
@@ -237,6 +360,14 @@ def main():
         if not fetch_and_store_emails(logger):
             logger.error("Email fetching failed")
             return 1
+
+        # Phase 2: Style learning and AI
+        if not learn_writing_style(logger):
+            logger.warning("Style learning had issues, but continuing...")
+
+        # Generate sample draft
+        if not generate_sample_draft(logger):
+            logger.warning("Sample draft generation failed, but continuing...")
 
         # Display summary
         display_summary(logger)

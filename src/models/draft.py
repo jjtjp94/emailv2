@@ -131,6 +131,19 @@ class StyleProfile(Base):
     def __repr__(self):
         return f"<StyleProfile(name='{self.profile_name}', emails_analyzed={self.total_emails_analyzed})>"
 
+    def get_formality_description(self) -> str:
+        """Get human-readable formality description."""
+        if self.avg_formality_score is None:
+            return "Unknown"
+        elif self.avg_formality_score < 0.3:
+            return "Very Casual"
+        elif self.avg_formality_score < 0.5:
+            return "Casual"
+        elif self.avg_formality_score < 0.7:
+            return "Professional"
+        else:
+            return "Formal"
+
     def to_dict(self):
         """Convert style profile to dictionary."""
         return {
