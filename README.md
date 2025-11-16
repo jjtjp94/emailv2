@@ -65,32 +65,62 @@ AZURE_TENANT_ID=common
 ANTHROPIC_API_KEY=your_api_key
 ```
 
-### Running
+### First Run - Setup (CLI Mode)
 
 ```bash
+# Run setup to authenticate and learn your style
 python src/main.py
 ```
 
+This will:
+1. Authenticate with your Microsoft account
+2. Fetch your emails
+3. Analyze your writing style
+4. Generate a sample draft
+
+### Launch Desktop UI
+
+```bash
+# Start the GUI application
+python run_gui.py
+```
+
+**See [QUICKSTART.md](QUICKSTART.md) for detailed step-by-step instructions.**
+
 ## Usage
 
-### First Launch
-1. App will prompt for Microsoft account authentication
-2. Approve permissions for email access
-3. App will analyze your recent sent emails to learn your style
-4. System tray icon will appear when ready
+### Desktop Application
 
-### Drafting Emails
-1. Click system tray icon or press `Ctrl+Alt+E`
-2. Select an email from your inbox
-3. Click "Generate Draft"
-4. Review and refine as needed
-5. Copy to Outlook or send directly
+The GUI provides a comprehensive email drafting interface:
 
-### Hotkeys (Default)
-- `Ctrl+Alt+E`: Show/hide main window
-- `Ctrl+Alt+D`: Generate draft for selected email
-- `Ctrl+Alt+R`: Refine current draft
-- `Ctrl+Alt+C`: Copy draft to clipboard
+**Main Window:**
+- **Left Pane**: Email list (inbox, sent, unread)
+- **Middle Pane**: Selected email details
+- **Right Pane**: Draft editor with refinement controls
+
+**Workflow:**
+1. Select an email from the list
+2. Click "🤖 Generate Draft"
+3. Review the AI-generated draft
+4. Use refinement buttons to adjust:
+   - ✂️ Make Concise
+   - 📝 Add Details
+   - 👔 More Formal
+   - 😊 More Casual
+   - ✓ Fix Grammar
+   - • Add Bullets
+5. Copy to clipboard or create draft in Outlook
+
+**Keyboard Shortcuts:**
+- `Ctrl+R`: Refresh emails
+- `Ctrl+D`: Generate draft
+- `Ctrl+C`: Copy draft to clipboard
+- `Ctrl+Q`: Quit application
+
+**System Tray:**
+- Minimize to tray for background operation
+- Right-click tray icon for quick actions
+- Auto-refresh emails every 5 minutes
 
 ## Project Structure
 
@@ -124,14 +154,15 @@ emailv2/
 └── README.md                    # This file
 ```
 
-## Development Phases
+## Development Status
 
 - [x] Phase 1: Foundation & Authentication
-- [ ] Phase 2: AI Integration & Style Learning
-- [ ] Phase 3: Desktop UI Development
-- [ ] Phase 4: Draft Refinement & Polish
-- [ ] Phase 5: Advanced Features
-- [ ] Phase 6: Web Dashboard (Optional)
+- [x] Phase 2: AI Integration & Style Learning
+- [x] Phase 3: Desktop UI Development (Current)
+- [ ] Phase 4: Advanced Features & Polish
+- [ ] Phase 5: Deployment & Distribution
+
+**Current Version**: 0.3.0 (GUI Beta)
 
 See [PROJECT_PLAN.md](PROJECT_PLAN.md) for detailed implementation timeline.
 
@@ -146,16 +177,40 @@ This is a personal project, but suggestions and improvements are welcome.
 - No data sent to third parties except Microsoft Graph API and Claude API
 - Clear cache and data options available in settings
 
+## Screenshots
+
+### Main Application Window
+- Email list with unread indicators
+- Full email preview with sender details
+- Draft editor with refinement controls
+- Real-time AI generation with progress feedback
+
+### System Tray Integration
+- Background operation
+- Quick access menu
+- Email refresh notifications
+
+## Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Detailed Azure AD and API setup
+- **[PROJECT_PLAN.md](PROJECT_PLAN.md)** - Complete technical architecture
+- **[ROADMAP.md](ROADMAP.md)** - Implementation timeline and tasks
+
 ## License
 
-MIT License (or your preferred license)
+MIT License
 
 ## Support
 
-For issues or questions, please refer to the project documentation or create an issue.
+For issues or questions:
+- Check the documentation files
+- Review logs in `logs/app.log`
+- Ensure all credentials are correctly configured in `.env`
 
 ---
 
-**Status**: In Development
-**Current Phase**: Phase 1 - Foundation
+**Status**: Beta - Desktop UI Functional
+**Current Phase**: Phase 3 Complete
 **Last Updated**: 2025-11-16
+**Version**: 0.3.0
