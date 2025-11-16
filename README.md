@@ -25,67 +25,35 @@ This tool learns from your email history to generate contextual draft responses 
 
 ## Quick Start
 
-### Prerequisites
+**→ For complete step-by-step deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md) ⭐**
 
-1. **Azure AD App Registration**
-   - Go to [Azure Portal](https://portal.azure.com)
-   - Register a new app for Microsoft Graph API
-   - Note your Client ID and Tenant ID
+### TL;DR - Fast Track
 
-2. **Anthropic API Key**
-   - Get your API key from [Anthropic Console](https://console.anthropic.com)
+1. **Get API credentials** (15 minutes):
+   - Azure AD: Register app at https://portal.azure.com → Get Client ID
+   - Anthropic: Get API key at https://console.anthropic.com
 
-### Installation
+2. **Install & configure** (5 minutes):
+   ```bash
+   cd emailv2
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   cp .env.example .env
+   # Edit .env with your AZURE_CLIENT_ID and ANTHROPIC_API_KEY
+   ```
 
-```bash
-# Clone the repository
-git clone <repository-url>
-cd emailv2
+3. **First run** - authenticate & learn your style (5 minutes):
+   ```bash
+   python src/main.py
+   ```
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+4. **Launch desktop app** (instant):
+   ```bash
+   python run_gui.py
+   ```
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy environment template
-cp .env.example .env
-
-# Edit .env with your credentials
-nano .env
-```
-
-### Configuration
-
-Edit `.env` file with your credentials:
-```env
-AZURE_CLIENT_ID=your_client_id
-AZURE_TENANT_ID=common
-ANTHROPIC_API_KEY=your_api_key
-```
-
-### First Run - Setup (CLI Mode)
-
-```bash
-# Run setup to authenticate and learn your style
-python src/main.py
-```
-
-This will:
-1. Authenticate with your Microsoft account
-2. Fetch your emails
-3. Analyze your writing style
-4. Generate a sample draft
-
-### Launch Desktop UI
-
-```bash
-# Start the GUI application
-python run_gui.py
-```
-
-**See [QUICKSTART.md](QUICKSTART.md) for detailed step-by-step instructions.**
+**→ Need help? See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions with screenshots and troubleshooting.**
 
 ## Usage
 
@@ -192,8 +160,9 @@ This is a personal project, but suggestions and improvements are welcome.
 
 ## Documentation
 
-- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
-- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Detailed Azure AD and API setup
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - **⭐ START HERE** - Complete deployment guide with Azure & API setup
+- **[QUICKSTART.md](QUICKSTART.md)** - Quick reference for daily usage
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Alternative detailed setup instructions
 - **[PROJECT_PLAN.md](PROJECT_PLAN.md)** - Complete technical architecture
 - **[ROADMAP.md](ROADMAP.md)** - Implementation timeline and tasks
 
